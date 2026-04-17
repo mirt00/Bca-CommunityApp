@@ -1,0 +1,14 @@
+﻿{
+  "title": "Chat Message",
+  "description": "Validates group chat message payloads. Direct/private messages are not supported.",
+  "type": "object",
+  "required": ["groupId", "senderId", "content"],
+  "additionalProperties": false,
+  "properties": {
+    "groupId": { "type": "string", "minLength": 1 },
+    "senderId": { "type": "string", "minLength": 1 },
+    "content": { "type": "string", "minLength": 1, "maxLength": 5000 },
+    "fileUrl": { "type": "string", "format": "uri" },
+    "fileType": { "type": "string", "enum": ["doc", "media", "resource"] }
+  }
+}

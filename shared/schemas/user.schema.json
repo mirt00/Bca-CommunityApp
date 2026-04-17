@@ -1,0 +1,20 @@
+﻿{
+  "title": "User Registration",
+  "description": "Validates user registration and profile update payloads",
+  "type": "object",
+  "required": ["fullName", "email", "password", "dateOfBirth", "batch", "faculty", "linkedin", "github"],
+  "additionalProperties": true,
+  "properties": {
+    "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+    "nickname": { "type": "string", "maxLength": 50 },
+    "email": { "type": "string", "format": "email" },
+    "password": { "type": "string", "minLength": 8 },
+    "dateOfBirth": { "type": "string", "format": "date" },
+    "batch": { "type": "string", "minLength": 1 },
+    "faculty": { "type": "string", "minLength": 1 },
+    "organizationName": { "type": "string" },
+    "linkedin": { "type": "string", "pattern": "^https://linkedin\\.com/in/.+$" },
+    "github": { "type": "string", "pattern": "^https://github\\.com/.+$" },
+    "bio": { "type": "string", "maxLength": 500 }
+  }
+}

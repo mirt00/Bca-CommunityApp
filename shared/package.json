@@ -1,0 +1,10 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared schemas and constants for IT Community App",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests for shared package yet\""
+  }
+}

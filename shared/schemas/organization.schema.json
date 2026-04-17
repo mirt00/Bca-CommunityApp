@@ -1,0 +1,16 @@
+﻿{
+  "title": "Organization",
+  "description": "Validates organization creation and update payloads",
+  "type": "object",
+  "required": ["organizationName", "establishedDate", "location"],
+  "additionalProperties": true,
+  "properties": {
+    "organizationName": { "type": "string", "minLength": 2, "maxLength": 150 },
+    "establishedDate": { "type": "string", "format": "date" },
+    "location": { "type": "string", "minLength": 2 },
+    "logo": { "type": "string" },
+    "website": { "type": "string", "format": "uri" },
+    "facebook": { "type": "string", "format": "uri" },
+    "linkedin": { "type": "string", "format": "uri" }
+  }
+}
