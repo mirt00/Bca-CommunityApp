@@ -57,7 +57,6 @@ const jobPostSchema = new mongoose.Schema(
 );
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
-jobPostSchema.index({ groupId: 1 });
-jobPostSchema.index({ tags: 1 });
+// Note: groupId and tags have index: true in schema fields
 
 module.exports = mongoose.model('JobPost', jobPostSchema);

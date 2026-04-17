@@ -1,15 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, StyleSheet, StatusBar } from 'react-native';
 
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { requestPasswordReset, resetPassword } from '../../api/endpoints/auth';
 
-/**
- * ResetPasswordScreen — two-step password reset flow.
- * Step 1: Enter email → receive reset token via email.
- * Step 2: Enter token + new password → password updated.
- */
 export default function ResetPasswordScreen({ navigation }) {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -54,40 +49,62 @@ export default function ResetPasswordScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-surface"
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-3xl font-bold text-gray-900 mb-2">Reset password</Text>
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
+      <View style={styles.content}>
+        <Text style={styles.title}>Reset Password</Text>
 
         {step === 1 && (
           <>
-            <Text className="text-gray-500 mb-8">Enter your email to receive a reset link.</Text>
-            <Input label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" />
-            {error ? <Text className="text-error text-sm mb-4">{error}</Text> : null}
-            <Button label="Send Reset Link" onPress={handleRequestReset} loading={loading} />
+            <Text style={styles.subtitle}>Enter your email to receive a reset link.</Text>
+            <View style={styles.form}>
+              <Input
+                label="Email"
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+              />
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <Button label="Send Reset Link" onPress={handleRequestReset} loading={loading} />
+            </View>
           </>
         )}
 
         {step === 2 && (
           <>
-            <Text className="text-gray-500 mb-8">{message} Enter the token from your email and your new password.</Text>
-            <Input label="Reset Token" placeholder="Paste token from email" value={token} onChangeText={setToken} />
-            <Input label="New Password" placeholder="Min. 8 characters" value={newPassword} onChangeText={setNewPassword} secureTextEntry />
-            {error ? <Text className="text-error text-sm mb-4">{error}</Text> : null}
-            <Button label="Update Password" onPress={handleResetPassword} loading={loading} />
+            <Text style={styles.subtitle}>{message} Enter the token from your email and your new password.</Text>
+            <View style={styles.form}>
+              <Input
+                label="Reset Token"
+                placeholder="Paste token from email"
+                value={token}
+                onChangeText={setToken}
+              />
+              <Input
+                label="New Password"
+                placeholder="Min. 8 characters"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+              />
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <Button label="Update Password" onPress={handleResetPassword} loading={loading} />
+            </View>
           </>
         )}
 
         {step === 3 && (
           <>
-            <Text className="text-success text-base mb-8">{message}</Text>
+            <Text style={styles.successText}>{message}</Text>
             <Button label="Back to Login" onPress={() => navigation.navigate('Login')} />
           </>
         )}
 
         <Text
-          className="text-primary-600 text-sm text-center mt-6"
+          style={styles.link}
           onPress={() => navigation.navigate('Login')}
         >
           Back to login
@@ -96,3 +113,53 @@ export default function ResetPasswordScreen({ navigation }) {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 24,
+  },
+  form: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  successText: {
+    color: '#22c55e',
+    fontSize: 16,
+    marginBottom: 24,
+  },
+  link: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 24,
+  },
+});

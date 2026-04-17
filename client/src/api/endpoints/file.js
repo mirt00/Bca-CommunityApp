@@ -1,5 +1,5 @@
 import api from '../axiosConfig';
-import { API_ROUTES } from '../../../../shared/constants/routes';
+import { API_ROUTES } from '../../shared/constants/routes';
 
 /**
  * Upload a file to a group's repository.

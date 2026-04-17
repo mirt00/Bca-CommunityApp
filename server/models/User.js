@@ -96,7 +96,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 }, { unique: true });
+// Note: email has unique: true in schema field, so no duplicate index needed
 userSchema.index({ isApproved: 1 });
 userSchema.index({ batch: 1 });
 userSchema.index({ faculty: 1 });

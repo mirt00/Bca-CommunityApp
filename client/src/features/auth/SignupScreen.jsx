@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, StatusBar } from 'react-native';
 
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { register } from '../../api/endpoints/auth';
 
-/**
- * SignupScreen — new user registration form.
- * Collects all required fields from user.schema.json.
- * On success, shows a pending-approval message.
- */
 export default function SignupScreen({ navigation }) {
   const [form, setForm] = useState({
     fullName: '',
@@ -58,9 +47,9 @@ export default function SignupScreen({ navigation }) {
 
   if (success) {
     return (
-      <View className="flex-1 bg-surface items-center justify-center px-6">
-        <Text className="text-2xl font-bold text-gray-900 mb-4">Registration submitted</Text>
-        <Text className="text-gray-500 text-center mb-8">
+      <View style={styles.successContainer}>
+        <Text style={styles.successTitle}>Registration Submitted!</Text>
+        <Text style={styles.successText}>
           Your account is pending admin approval. You will receive an email once approved.
         </Text>
         <Button label="Back to Login" onPress={() => navigation.navigate('Login')} />
@@ -70,39 +59,163 @@ export default function SignupScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-surface"
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="px-6 py-12">
-          <Text className="text-3xl font-bold text-gray-900 mb-2">Create account</Text>
-          <Text className="text-gray-500 mb-8">Join the IT community</Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join the BCA Community</Text>
+          </View>
 
-          <Input label="Full Name" placeholder="Jane Doe" value={form.fullName} onChangeText={updateField('fullName')} />
-          <Input label="Email" placeholder="you@example.com" value={form.email} onChangeText={updateField('email')} keyboardType="email-address" />
-          <Input label="Password" placeholder="Min. 8 characters" value={form.password} onChangeText={updateField('password')} secureTextEntry />
-          <Input label="Date of Birth" placeholder="YYYY-MM-DD" value={form.dateOfBirth} onChangeText={updateField('dateOfBirth')} />
-          <Input label="Batch" placeholder="e.g. 2023" value={form.batch} onChangeText={updateField('batch')} />
-          <Input label="Faculty" placeholder="e.g. Information Technology" value={form.faculty} onChangeText={updateField('faculty')} />
-          <Input label="LinkedIn URL" placeholder="https://linkedin.com/in/yourname" value={form.linkedin} onChangeText={updateField('linkedin')} autoCapitalize="none" />
-          <Input label="GitHub URL" placeholder="https://github.com/yourname" value={form.github} onChangeText={updateField('github')} autoCapitalize="none" />
-          <Input label="Bio (optional)" placeholder="Tell us about yourself" value={form.bio} onChangeText={updateField('bio')} multiline numberOfLines={3} />
+          <View style={styles.form}>
+            <Input
+              label="Full Name"
+              placeholder="Jane Doe"
+              value={form.fullName}
+              onChangeText={updateField('fullName')}
+            />
+            <Input
+              label="Email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChangeText={updateField('email')}
+              keyboardType="email-address"
+            />
+            <Input
+              label="Password"
+              placeholder="Min. 8 characters"
+              value={form.password}
+              onChangeText={updateField('password')}
+              secureTextEntry
+            />
+            <Input
+              label="Date of Birth"
+              placeholder="YYYY-MM-DD"
+              value={form.dateOfBirth}
+              onChangeText={updateField('dateOfBirth')}
+            />
+            <Input
+              label="Batch"
+              placeholder="e.g. 2023"
+              value={form.batch}
+              onChangeText={updateField('batch')}
+            />
+            <Input
+              label="Faculty"
+              placeholder="e.g. Information Technology"
+              value={form.faculty}
+              onChangeText={updateField('faculty')}
+            />
+            <Input
+              label="LinkedIn URL"
+              placeholder="https://linkedin.com/in/yourname"
+              value={form.linkedin}
+              onChangeText={updateField('linkedin')}
+              autoCapitalize="none"
+            />
+            <Input
+              label="GitHub URL"
+              placeholder="https://github.com/yourname"
+              value={form.github}
+              onChangeText={updateField('github')}
+              autoCapitalize="none"
+            />
+            <Input
+              label="Bio (optional)"
+              placeholder="Tell us about yourself"
+              value={form.bio}
+              onChangeText={updateField('bio')}
+              multiline
+              numberOfLines={3}
+            />
 
-          {error ? <Text className="text-error text-sm mb-4">{error}</Text> : null}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <Button label="Create Account" onPress={handleRegister} loading={loading} />
+            <Button label="Create Account" onPress={handleRegister} loading={loading} />
 
-          <Text
-            className="text-primary-600 text-sm text-center mt-6"
-            onPress={() => navigation.navigate('Login')}
-          >
-            Already have an account? Sign in
-          </Text>
+            <Text
+              style={styles.link}
+              onPress={() => navigation.navigate('Login')}
+            >
+              Already have an account? Sign in
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  form: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  link: {
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  successContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  successText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+});

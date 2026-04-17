@@ -1,38 +1,28 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-/**
- * Input — reusable text input with label, error state, and password toggle.
- *
- * @param {object} props
- * @param {string} [props.label] - Field label shown above the input
- * @param {string} [props.error] - Error message shown below the input
- * @param {boolean} [props.secureTextEntry=false] - Enables password mode with toggle
- * @param {string} [props.className] - Additional NativeWind classes for the container
- * @param {object} rest - All other TextInput props (value, onChangeText, placeholder, etc.)
- */
 export default function Input({
   label,
   error,
   secureTextEntry = false,
-  className = '',
+  style,
   ...rest
 }) {
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
   return (
-    <View className={`mb-4 ${className}`}>
+    <View style={[styles.container, style]}>
       {label && (
-        <Text className="text-sm font-medium text-gray-700 mb-1">{label}</Text>
+        <Text style={styles.label}>{label}</Text>
       )}
 
-      <View className="relative">
+      <View style={styles.inputWrapper}>
         <TextInput
-          className={`
-            border rounded-xl px-4 py-3 text-base text-gray-900 bg-white
-            ${error ? 'border-error' : 'border-gray-300'}
-            ${secureTextEntry ? 'pr-12' : ''}
-          `}
+          style={[
+            styles.input,
+            error ? styles.inputError : styles.inputNormal,
+            secureTextEntry && styles.inputSecure,
+          ]}
           secureTextEntry={isSecure}
           placeholderTextColor="#9ca3af"
           autoCapitalize="none"
@@ -42,17 +32,64 @@ export default function Input({
         {secureTextEntry && (
           <TouchableOpacity
             onPress={() => setIsSecure((prev) => !prev)}
-            className="absolute right-3 top-3"
+            style={styles.toggleButton}
           >
-            {/* TODO: replace with eye icon from @expo/vector-icons */}
-            <Text className="text-primary-600 text-sm">{isSecure ? 'Show' : 'Hide'}</Text>
+            <Text style={styles.toggleText}>{isSecure ? 'Show' : 'Hide'}</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {error && (
-        <Text className="text-error text-xs mt-1">{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 6,
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
+  input: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#111827',
+    backgroundColor: '#ffffff',
+  },
+  inputNormal: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: '#ef4444',
+  },
+  inputSecure: {
+    paddingRight: 48,
+  },
+  toggleButton: {
+    position: 'absolute',
+    right: 12,
+    top: 14,
+  },
+  toggleText: {
+    color: '#3b82f6',
+    fontSize: 14,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
+  },
+});

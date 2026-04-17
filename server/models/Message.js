@@ -33,10 +33,11 @@ const messageSchema = new mongoose.Schema(
 );
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
+// Note: groupId has index: true in schema field
+// Compound index for efficient pagination
 messageSchema.index({ groupId: 1, createdAt: -1 });
 
 // TTL index — automatically delete messages older than 1 year (365 days)
-// Adjust expireAfterSeconds to match your retention policy
 messageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 });
 
 module.exports = mongoose.model('Message', messageSchema);

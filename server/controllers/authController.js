@@ -2,9 +2,7 @@ const argon2 = require('argon2');
 const crypto = require('crypto');
 const User = require('../models/User');
 const { encryptToken } = require('../config/paseto');
-
-// TODO: import email service when SMTP is configured
-// const { sendApprovalEmail, sendResetEmail } = require('../services/emailService');
+const { sendResetEmail, sendNewStudentNotification } = require('../services/emailService');
 
 /**
  * POST /api/auth/register
@@ -52,7 +50,10 @@ async function register(req, res) {
       role: 'student',
     });
 
-    // TODO: notify admin of new pending registration via email
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      await sendNewStudentNotification(adminEmail, user);
+    }
 
     return res.status(201).json({
       message: 'Registration successful. Your account is pending admin approval.',
@@ -119,8 +120,7 @@ async function resetPasswordRequest(req, res) {
     user.resetTokenExpiry = resetTokenExpiry;
     await user.save();
 
-    // TODO: send reset email with link containing resetToken
-    // await sendResetEmail(user.email, resetToken);
+    await sendResetEmail(user.email, resetToken);
 
     return res.status(200).json({ message: 'If that email exists, a reset link has been sent.' });
   } catch (err) {

@@ -4,6 +4,7 @@ const router = express.Router();
 const { authenticate, requireAdmin } = require('../middlewares/authMiddleware');
 const User = require('../models/User');
 const { encryptToken } = require('../config/paseto');
+const { sendApprovalEmail, sendNewStudentNotification } = require('../services/emailService');
 
 // All admin routes require authentication + admin role
 router.use(authenticate, requireAdmin);
@@ -44,13 +45,11 @@ router.post('/:id/approve', async (req, res) => {
       isApproved: true,
     });
 
-    // TODO: send approval email with newToken or login prompt
-    // await sendApprovalEmail(user.email, newToken);
+    await sendApprovalEmail(user.email, newToken);
 
     return res.status(200).json({
       message: `${user.fullName} has been approved`,
       userId: user._id,
-      newToken, // TODO: deliver via email instead of response body
     });
   } catch (err) {
     console.error('[adminRoutes.approve]', err);

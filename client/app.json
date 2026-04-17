@@ -4,14 +4,13 @@
     "slug": "bca-community-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "platforms": ["ios", "android"],
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bcacommunity.app",
@@ -23,7 +22,6 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.bcacommunity.app",
@@ -35,9 +33,6 @@
         "INTERNET",
         "ACCESS_NETWORK_STATE"
       ]
-    },
-    "web": {
-      "favicon": "./assets/icons/favicon.png"
     },
     "plugins": [
       "expo-secure-store"

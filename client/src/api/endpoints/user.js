@@ -1,5 +1,5 @@
 import api from '../axiosConfig';
-import { API_ROUTES } from '../../../../shared/constants/routes';
+import { API_ROUTES } from '../../shared/constants/routes';
 
 /**
  * Fetch the authenticated user's profile.
