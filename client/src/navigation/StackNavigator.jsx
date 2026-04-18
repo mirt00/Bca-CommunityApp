@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../features/auth/LoginScreen';
 import SignupScreen from '../features/auth/SignupScreen';
 import ResetPasswordScreen from '../features/auth/ResetPasswordScreen';
+import OrganizationSignupScreen from '../features/auth/OrganizationSignupScreen';
 import TabNavigator from './TabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +23,7 @@ export function AuthStack() {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="OrganizationSignup" component={OrganizationSignupScreen} />
       <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );

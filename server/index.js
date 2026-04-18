@@ -16,6 +16,7 @@ const groupRoutes = require('./routes/groupRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const jobRoutes = require('./routes/jobRoutes');
+const organizationRoutes = require('./routes/organizationRoutes');
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -67,6 +68,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/organizations', organizationRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));

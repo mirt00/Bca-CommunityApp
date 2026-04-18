@@ -1,7 +1,10 @@
 const argon2 = require('argon2');
 const crypto = require('crypto');
 const User = require('../models/User');
+const UserProfile = require('../models/UserProfile');
+const Organization = require('../models/Organization');
 const { encryptToken } = require('../config/paseto');
+const { uploadFile } = require('../config/cloudinary');
 const { sendResetEmail, sendNewStudentNotification } = require('../services/emailService');
 
 /**
@@ -19,10 +22,13 @@ async function register(req, res) {
       dateOfBirth,
       batch,
       faculty,
+      organizationId,
       organizationName,
+      profilePicture,
       linkedin,
       github,
       bio,
+      role = 'student',
     } = req.body;
 
     // Check for existing account
@@ -31,28 +37,81 @@ async function register(req, res) {
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
 
+    // Validate organizationId for students
+    if (role === 'student' && organizationId) {
+      const org = await Organization.findById(organizationId);
+      if (!org) {
+        return res.status(400).json({ error: 'Invalid organization selected' });
+      }
+    }
+
+    // For organizations, lookup the name from database
+    let orgName = organizationName;
+    if (role === 'organization' && organizationId) {
+      const org = await Organization.findById(organizationId);
+      if (!org) {
+        return res.status(400).json({ error: 'Invalid organization selected' });
+      }
+      orgName = org.organizationName;
+    }
+
+    // Upload profile picture if provided (base64 data URI)
+    let profilePictureUrl = null;
+    if (profilePicture && profilePicture.startsWith('data:')) {
+      try {
+        const result = await uploadFile(profilePicture, {
+          folder: 'it-community-app/profiles',
+          resource_type: 'image',
+        });
+        profilePictureUrl = result.secure_url;
+      } catch (uploadErr) {
+        console.error('[authController.register] Profile picture upload failed', uploadErr);
+      }
+    }
+
     // Hash password with Argon2id
     const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
 
+    // Create user account
     const user = await User.create({
-      fullName,
-      nickname,
       email: email.toLowerCase(),
       passwordHash,
-      dateOfBirth,
-      batch,
-      faculty,
-      organizationName,
-      linkedin,
-      github,
-      bio,
-      isApproved: false,
-      role: 'student',
+      profilePicture: profilePictureUrl,
+      isApproved: role === 'organization' ? true : false,
+      role: role,
     });
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (adminEmail) {
-      await sendNewStudentNotification(adminEmail, user);
+    // Create user profile
+    const profileData = {
+      userId: user._id,
+      fullName,
+      nickname,
+      bio,
+      linkedin,
+      github,
+    };
+
+    // Add role-specific fields
+    if (role === 'student') {
+      profileData.dateOfBirth = new Date(dateOfBirth);
+      profileData.batch = batch;
+      profileData.faculty = faculty;
+      if (organizationId) {
+        profileData.organizationId = organizationId;
+      }
+    } else if (role === 'organization') {
+      profileData.organizationId = organizationId;
+      profileData.organizationName = orgName;
+    }
+
+    await UserProfile.create(profileData);
+
+    // Send notification for students
+    if (role === 'student') {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        await sendNewStudentNotification(adminEmail, { ...user.toObject(), ...profileData });
+      }
     }
 
     return res.status(201).json({
@@ -71,7 +130,7 @@ async function register(req, res) {
  */
 async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, password, organizationId } = req.body;
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
@@ -83,15 +142,32 @@ async function login(req, res) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // For organization role, verify the organization matches
+    if (user.role === 'organization' && organizationId) {
+      const profile = await UserProfile.findOne({ userId: user._id });
+      if (!profile || profile.organizationId?.toString() !== organizationId) {
+        return res.status(401).json({ error: 'Invalid organization' });
+      }
+    }
+
+    // Get user profile
+    const profile = await UserProfile.findOne({ userId: user._id });
+
     const token = await encryptToken({
       userId: user._id.toString(),
       role: user.role,
       isApproved: user.isApproved,
     });
 
+    // Combine user and profile data for response
+    const userData = {
+      ...user.toSafeObject(),
+      ...(profile ? profile.toObject() : {}),
+    };
+
     return res.status(200).json({
       token,
-      user: user.toSafeObject(),
+      user: userData,
     });
   } catch (err) {
     console.error('[authController.login]', err);

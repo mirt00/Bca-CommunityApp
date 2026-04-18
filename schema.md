@@ -4,78 +4,104 @@
 
 ## 1. User Schema
 
-Represents individual users of the platform. Users can register via OAuth providers (Google, LinkedIn, GitHub) or directly with email.
+Represents authentication data for all users (students, admins, organizations).
 
 ### Fields
 
 | Field             | Type     | Required | Constraints / Notes                                              |
 |-------------------|----------|----------|------------------------------------------------------------------|
-| `profilePicture`  | File/URL | Optional | Uploaded image; stored as a URL reference                       |
+| `email`           | String   | Required | Unique; used for login and password reset                        |
+| `passwordHash`    | String   | Required | Hashed password; minimum 8 characters                            |
+| `isApproved`      | Boolean  | Required | `false` for pending students, `true` for approved users and orgs |
+| `role`            | String   | Required | Enum: `student`, `admin`, `organization`                         |
+| `oauthProviders`  | Object   | Optional | OAuth provider data (Google, LinkedIn, GitHub)                  |
+| `resetToken`      | String   | Optional | Single-use password reset token                                  |
+| `resetTokenExpiry`| Date     | Optional | Expiry time for reset token                                      |
+
+---
+
+## 2. UserProfile Schema
+
+Represents profile information for individual users (students and organization representatives).
+
+### Fields
+
+| Field             | Type     | Required | Constraints / Notes                                              |
+|-------------------|----------|----------|------------------------------------------------------------------|
+| `userId`          | ObjectId | Required | Reference to User document                                       |
+| `profilePicture`  | String   | Optional | Cloudinary URL for profile picture                               |
 | `fullName`        | String   | Required | User's full legal name                                           |
 | `nickname`        | String   | Optional | Display name / username                                          |
 | `bio`             | String   | Optional | Short personal description                                       |
-| `dateOfBirth`     | Date     | Required | Format: `YYYY-MM-DD`                                             |
-| `batch`           | String   | Required | Academic batch / graduation year (e.g., `2022`, `2023–2025`)    |
-| `faculty`         | String   | Required | Faculty or department name                                       |
-| `organizationName`| String   | Optional | Name of the organization the user belongs to                     |
-| `email`           | String   | Required | Unique; used for password reset and identity verification        |
-| `password`        | String   | Required | Hashed; minimum 8 characters                                     |
-| `linkedin`        | String   | Required | Full LinkedIn profile URL — **mandatory on profile**             |
-| `github`          | String   | Required | Full GitHub profile URL — **mandatory on profile**               |
-
-### Authentication & OAuth
-
-Users may sign up or log in using any of the following providers:
-
-| Provider  | Notes                                     |
-|-----------|-------------------------------------------|
-| Google    | OAuth 2.0; email auto-populated           |
-| LinkedIn  | OAuth 2.0; LinkedIn URL auto-populated    |
-| GitHub    | OAuth 2.0; GitHub URL auto-populated      |
-
-> **Note:** Regardless of the sign-up method, `linkedin` and `github` fields are **mandatory** on the user profile and must be filled in before the profile is considered complete.
-
-### Profile Management
-
-- Users can **edit** any profile field at any time.
-- Users can **reset their password** from the account settings page (requires current password).
-- Users who **forget their password** can trigger a password reset link via their registered email address.
+| `dateOfBirth`     | Date     | Required | For students only                                                |
+| `batch`           | String   | Required | Academic batch (for students only)                               |
+| `faculty`         | String   | Required | Faculty/department (for students only)                           |
+| `organizationId`  | ObjectId | Optional | Reference to Organization (for organization users)               |
+| `linkedin`        | String   | Required | Full LinkedIn profile URL                                        |
+| `github`          | String   | Required | Full GitHub profile URL                                          |
 
 ---
 
-## 2. Organization Schema
+## 3. Organization Schema
 
-Represents an organization or club that can be associated with users on the platform.
+Represents organizations that can have user representatives on the platform.
 
 ### Fields
 
 | Field             | Type     | Required | Constraints / Notes                                              |
 |-------------------|----------|----------|------------------------------------------------------------------|
-| `organizationLogo`| File/URL | Optional | Uploaded image; stored as a URL reference                       |
 | `organizationName`| String   | Required | Unique name of the organization                                  |
-| `establishedDate` | Date     | Required | Format: `YYYY-MM-DD`                                             |
+| `logo`            | String   | Optional | Cloudinary URL for organization logo                             |
+| `establishedDate` | Date     | Required | When the organization was founded                                |
 | `location`        | String   | Required | City, country or full address                                    |
-| `facebookPage`    | String   | Optional | Full Facebook page URL                                           |
-| `website`         | String   | Optional | Full URL of the official website                                 |
-| `linkedin`        | String   | Optional | Full LinkedIn organization page URL                              |
+| `website`         | String   | Optional | Official website URL                                             |
+| `socials.facebook`| String   | Optional | Facebook page URL                                               |
+| `socials.linkedin`| String   | Optional | LinkedIn organization page URL                                   |
 
 ---
 
-## 3. Relationships
+## 4. Relationships
 
 ```
-User ──────────────── Organization
-(organizationName)    (organizationName)
+User (role: 'student'/'organization')
+├── UserProfile (contains personal info)
+│   └── organizationId → Organization (for org users)
+└── Authentication data
 
-Many users can belong to one organization.
+User (role: 'admin')
+└── UserProfile (contains personal info)
+    └── No organization association
+
+Organization
+└── Referenced by UserProfile.organizationId
 ```
 
 ---
 
-## 4. Notes & Conventions
+## 5. Authentication & Authorization
+
+### User Roles
+- **Student**: Regular users who need admin approval
+- **Organization**: Organization representatives (auto-approved)
+- **Admin**: Platform administrators (auto-approved)
+
+### Approval Process
+- Students register → `isApproved: false` → Admin approval required
+- Organizations register → `isApproved: true` → No approval needed
+- Admins are created by other admins → `isApproved: true`
+
+### Access Control
+- Admin routes: `role === 'admin' || role === 'organization'`
+- Student approval: Only admins and organizations can approve/reject
+- Group creation: Any approved user can create groups
+
+---
+
+## 6. Notes & Conventions
 
 - All URLs must be fully qualified (e.g., `https://linkedin.com/in/username`).
-- All dates use the `YYYY-MM-DD` ISO 8601 format.
-- Passwords are **never** stored in plain text — always hashed (e.g., bcrypt).
-- `email` is the primary identifier for password recovery flows.
-- OAuth-linked accounts can still set a local password for fallback access.
+- All dates use ISO 8601 format.
+- Passwords are **never** stored in plain text — always hashed with Argon2id.
+- `email` is the primary identifier for authentication.
+- OAuth providers store access tokens for API integration.
+- Organizations have separate profiles from their representatives.

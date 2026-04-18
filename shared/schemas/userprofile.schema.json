@@ -1,0 +1,18 @@
+{
+  "title": "User Profile",
+  "description": "Validates user profile update payloads",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+    "nickname": { "type": "string", "maxLength": 50 },
+    "profilePicture": { "type": "string" },
+    "bio": { "type": "string", "maxLength": 500 },
+    "dateOfBirth": { "type": "string", "format": "date" },
+    "batch": { "type": "string", "minLength": 1 },
+    "faculty": { "type": "string", "minLength": 1 },
+    "organizationName": { "type": "string" },
+    "linkedin": { "type": "string" },
+    "github": { "type": "string" }
+  }
+}

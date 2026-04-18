@@ -2,6 +2,17 @@ const mongoose = require('mongoose');
 
 const organizationSchema = new mongoose.Schema(
   {
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    passwordHash: {
+      type: String,
+      required: [true, 'Password hash is required'],
+    },
     organizationName: {
       type: String,
       required: [true, 'Organization name is required'],
@@ -9,7 +20,7 @@ const organizationSchema = new mongoose.Schema(
       trim: true,
     },
     logo: {
-      type: String, // Cloudinary URL
+      type: String,
       default: null,
     },
     establishedDate: {
@@ -27,13 +38,19 @@ const organizationSchema = new mongoose.Schema(
     },
     socials: {
       facebook: {
-        type: String,
-        trim: true,
+        url: {
+          type: String,
+          trim: true,
+        },
+        username: {
+          type: String,
+          trim: true,
+        },
       },
-      linkedin: {
-        type: String,
-        trim: true,
-      },
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -41,7 +58,6 @@ const organizationSchema = new mongoose.Schema(
   }
 );
 
-// ─── Indexes ──────────────────────────────────────────────────────────────────
-organizationSchema.index({ organizationName: 1 }, { unique: true });
+organizationSchema.index({ email: 1 }, { unique: true });
 
 module.exports = mongoose.model('Organization', organizationSchema);

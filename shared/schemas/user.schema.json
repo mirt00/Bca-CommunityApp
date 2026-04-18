@@ -1,20 +1,35 @@
-﻿{
+{
   "title": "User Registration",
   "description": "Validates user registration and profile update payloads",
   "type": "object",
-  "required": ["fullName", "email", "password", "dateOfBirth", "batch", "faculty", "linkedin", "github"],
+  "required": ["email", "password", "role"],
   "additionalProperties": true,
   "properties": {
-    "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
-    "nickname": { "type": "string", "maxLength": 50 },
     "email": { "type": "string", "format": "email" },
     "password": { "type": "string", "minLength": 8 },
+    "role": { "type": "string", "enum": ["student", "organization"] },
+    "fullName": { "type": "string", "minLength": 2, "maxLength": 100 },
+    "nickname": { "type": "string", "maxLength": 50 },
     "dateOfBirth": { "type": "string", "format": "date" },
     "batch": { "type": "string", "minLength": 1 },
     "faculty": { "type": "string", "minLength": 1 },
     "organizationName": { "type": "string" },
-    "linkedin": { "type": "string", "pattern": "^https://linkedin\\.com/in/.+$" },
-    "github": { "type": "string", "pattern": "^https://github\\.com/.+$" },
+    "linkedin": { "type": "string" },
+    "github": { "type": "string" },
     "bio": { "type": "string", "maxLength": 500 }
-  }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "role": { "const": "student" } } },
+      "then": {
+        "required": ["fullName", "email", "password", "role", "dateOfBirth", "batch", "faculty", "linkedin", "github"]
+      }
+    },
+    {
+      "if": { "properties": { "role": { "const": "organization" } } },
+      "then": {
+        "required": ["fullName", "email", "password", "role", "organizationName", "linkedin", "github"]
+      }
+    }
+  ]
 }

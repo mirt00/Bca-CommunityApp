@@ -10,15 +10,6 @@ const oauthProviderSchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema(
   {
-    fullName: {
-      type: String,
-      required: [true, 'Full name is required'],
-      trim: true,
-    },
-    nickname: {
-      type: String,
-      trim: true,
-    },
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -29,42 +20,6 @@ const userSchema = new mongoose.Schema(
     passwordHash: {
       type: String,
       required: [true, 'Password hash is required'],
-    },
-    profilePicture: {
-      type: String, // Cloudinary URL
-      default: null,
-    },
-    bio: {
-      type: String,
-      maxlength: 500,
-    },
-    dateOfBirth: {
-      type: Date,
-      required: [true, 'Date of birth is required'],
-    },
-    batch: {
-      type: String,
-      required: [true, 'Batch is required'],
-      trim: true,
-    },
-    faculty: {
-      type: String,
-      required: [true, 'Faculty is required'],
-      trim: true,
-    },
-    organizationName: {
-      type: String,
-      trim: true,
-    },
-    linkedin: {
-      type: String,
-      required: [true, 'LinkedIn profile URL is required'],
-      trim: true,
-    },
-    github: {
-      type: String,
-      required: [true, 'GitHub profile URL is required'],
-      trim: true,
     },
     isApproved: {
       type: Boolean,
@@ -89,6 +44,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    profilePicture: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -98,8 +57,7 @@ const userSchema = new mongoose.Schema(
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 // Note: email has unique: true in schema field, so no duplicate index needed
 userSchema.index({ isApproved: 1 });
-userSchema.index({ batch: 1 });
-userSchema.index({ faculty: 1 });
+userSchema.index({ role: 1 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /** Strip sensitive fields before sending to client */

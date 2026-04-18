@@ -17,6 +17,27 @@ export const login = (credentials) =>
   api.post(API_ROUTES.AUTH.LOGIN, credentials);
 
 /**
+ * Get list of organizations for selection.
+ * @returns {Array} List of organizations
+ */
+export const getOrganizations = () =>
+  api.get(API_ROUTES.ORGANIZATIONS.LIST);
+
+/**
+ * Register a new organization.
+ * @param {object} payload - Organization fields
+ */
+export const registerOrganization = (payload) =>
+  api.post(API_ROUTES.ORGANIZATIONS.REGISTER, payload);
+
+/**
+ * Login as organization.
+ * @param {{ email: string, password: string }} credentials
+ */
+export const loginOrganization = (credentials) =>
+  api.post(API_ROUTES.ORGANIZATIONS.LOGIN, credentials);
+
+/**
  * Request a password reset email.
  * @param {{ email: string }} payload
  */

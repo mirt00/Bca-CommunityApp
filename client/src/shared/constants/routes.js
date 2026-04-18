@@ -6,6 +6,11 @@ export const API_ROUTES = {
     RESET_PASSWORD: '/api/auth/reset-password',
     PROFILE: '/api/users/profile',
   },
+  ORGANIZATIONS: {
+    LIST: '/api/organizations',
+    REGISTER: '/api/organizations/register',
+    LOGIN: '/api/organizations/login',
+  },
   USERS: {
     PROFILE: '/api/users/profile',
     UPDATE_PROFILE: '/api/users/update-profile',
