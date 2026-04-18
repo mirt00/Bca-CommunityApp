@@ -52,6 +52,10 @@ const organizationSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isAdmin: {
+      type: Boolean,
+      default: true, // Organizations can manage users by default
+    },
   },
   {
     timestamps: true,

@@ -6,13 +6,10 @@ import SignupScreen from '../features/auth/SignupScreen';
 import ResetPasswordScreen from '../features/auth/ResetPasswordScreen';
 import OrganizationSignupScreen from '../features/auth/OrganizationSignupScreen';
 import TabNavigator from './TabNavigator';
+import OrganizationDashboard from '../features/organization/OrganizationDashboard';
 
 const Stack = createNativeStackNavigator();
 
-/**
- * AuthStack — public screens accessible without a token.
- * Shown when the user is not authenticated or not yet approved.
- */
 export function AuthStack() {
   return (
     <Stack.Navigator
@@ -29,11 +26,7 @@ export function AuthStack() {
   );
 }
 
-/**
- * CommunityStack — protected screens for approved users.
- * Wraps the bottom TabNavigator and can push detail screens on top.
- */
-export function CommunityStack() {
+export function CommunityStack({ isOrganization }) {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -41,8 +34,11 @@ export function CommunityStack() {
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen name="Tabs" component={TabNavigator} />
-      {/* TODO: add detail screens here (e.g. GroupDetail, UserProfile) */}
+      {isOrganization ? (
+        <Stack.Screen name="OrganizationDashboard" component={OrganizationDashboard} />
+      ) : (
+        <Stack.Screen name="Tabs" component={TabNavigator} />
+      )}
     </Stack.Navigator>
   );
 }

@@ -32,10 +32,12 @@ export default function SignupScreen({ navigation }) {
   useEffect(() => {
     async function fetchOrgs() {
       try {
+        console.log('Fetching organizations from:', global.api?.defaults?.baseURL);
         const res = await getOrganizations();
+        console.log('Organizations:', res.data.organizations);
         setOrganizations(res.data.organizations || []);
       } catch (err) {
-        console.error('Failed to fetch organizations', err);
+        console.error('Failed to fetch organizations:', err.message);
       }
     }
     (async () => {

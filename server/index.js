@@ -15,7 +15,6 @@ const userRoutes = require('./routes/userRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const jobRoutes = require('./routes/jobRoutes');
 const organizationRoutes = require('./routes/organizationRoutes');
 
 const app = express();
@@ -56,8 +55,12 @@ io.on('connection', (socket) => {
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
-app.use(express.json());
+app.use(cors({ 
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiLimiter);
 
@@ -67,7 +70,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/jobs', jobRoutes);
 app.use('/api/organizations', organizationRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
@@ -92,6 +94,6 @@ const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
   httpServer.listen(PORT, () => {
-    console.log(`[Server] Running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+    console.log(`[Server] Running on 0.0.0.0:${PORT} (${process.env.NODE_ENV || 'development'})`);
   });
 });

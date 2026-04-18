@@ -1,9 +1,9 @@
-const { V4 } = require('paseto');
+const { V3 } = require('paseto');
 const { createSecretKey } = require('crypto');
 
 /**
  * Derive a symmetric key from the PASETO_SECRET env var.
- * PASETO v4.local requires a 32-byte key.
+ * PASETO v3.local requires a 32-byte key.
  */
 function getSymmetricKey() {
   const secret = process.env.PASETO_SECRET;
@@ -21,7 +21,7 @@ function getSymmetricKey() {
 }
 
 /**
- * Encrypt a payload into a PASETO v4.local token.
+ * Encrypt a payload into a PASETO v3.local token.
  *
  * @param {object} payload - Claims to embed (userId, role, isApproved, etc.)
  * @param {object} [options] - Optional PASETO options (expiresIn, etc.)
@@ -33,11 +33,11 @@ async function encryptToken(payload, options = {}) {
     expiresIn: '7d',
     ...options,
   };
-  return V4.encrypt(payload, key, defaultOptions);
+  return V3.encrypt(payload, key, defaultOptions);
 }
 
 /**
- * Decrypt a PASETO v4.local token and return the claims.
+ * Decrypt a PASETO v3.local token and return the claims.
  *
  * @param {string} token - The PASETO token string
  * @returns {Promise<object>} Decrypted payload object
@@ -45,7 +45,7 @@ async function encryptToken(payload, options = {}) {
  */
 async function decryptToken(token) {
   const key = getSymmetricKey();
-  return V4.decrypt(token, key);
+  return V3.decrypt(token, key);
 }
 
 module.exports = { encryptToken, decryptToken };

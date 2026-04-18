@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getToken, clearToken } from '../utils/tokenHelper';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+// Use this IP for Expo Go on your phone
+const BASE_URL = 'http://192.168.1.68:5000';
 
 /**
  * Axios instance pre-configured with the API base URL.

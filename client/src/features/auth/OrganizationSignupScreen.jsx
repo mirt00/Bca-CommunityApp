@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, StatusBar, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet, StatusBar, TouchableOpacity, Image, Alert, Modal, Pressable } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 
 import Button from '../../components/ui/Button';
@@ -11,13 +12,14 @@ export default function OrganizationSignupScreen({ navigation }) {
     email: '',
     password: '',
     organizationName: '',
-    establishedDate: '',
+    establishedDate: new Date(),
     location: '',
     website: '',
     facebookUrl: '',
     facebookUsername: '',
     logo: '',
   });
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,11 +59,12 @@ export default function OrganizationSignupScreen({ navigation }) {
 
     setLoading(true);
     try {
+      console.log('Registering with:', form.email, form.organizationName);
       const payload = {
         email: form.email,
         password: form.password,
         organizationName: form.organizationName,
-        establishedDate: form.establishedDate,
+        establishedDate: form.establishedDate.toISOString().split('T')[0],
         location: form.location,
         website: form.website || undefined,
         socials: {
@@ -73,9 +76,11 @@ export default function OrganizationSignupScreen({ navigation }) {
         logo: form.logo || undefined,
       };
 
-      await registerOrganization(payload);
+      const response = await registerOrganization(payload);
+      console.log('Success:', response.data);
       setSuccess(true);
     } catch (err) {
+      console.log('Error:', err.message, err.response?.data);
       setError(err.response?.data?.error || 'Organization registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -146,12 +151,45 @@ export default function OrganizationSignupScreen({ navigation }) {
               value={form.organizationName}
               onChangeText={updateField('organizationName')}
             />
-            <Input
-              label="Established Date"
-              placeholder="YYYY-MM-DD"
-              value={form.establishedDate}
-              onChangeText={updateField('establishedDate')}
-            />
+            <View style={styles.dateContainer}>
+              <Text style={styles.dateLabel}>Established Date</Text>
+              <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                <Text style={styles.dateText}>
+                  {form.establishedDate.toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              {showDatePicker && Platform.OS === 'ios' && (
+                <Modal transparent animationType="slide">
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                      <DateTimePicker
+                        value={form.establishedDate}
+                        mode="date"
+                        display="spinner"
+                        onChange={(event, date) => {
+                          setShowDatePicker(false);
+                          if (date) setForm(prev => ({ ...prev, establishedDate: date }));
+                        }}
+                      />
+                      <Pressable style={styles.modalDone} onPress={() => setShowDatePicker(false)}>
+                        <Text style={styles.modalDoneText}>Done</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </Modal>
+              )}
+              {showDatePicker && Platform.OS === 'android' && (
+                <DateTimePicker
+                  value={form.establishedDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, date) => {
+                    setShowDatePicker(false);
+                    if (date) setForm(prev => ({ ...prev, establishedDate: date }));
+                  }}
+                />
+              )}
+            </View>
             <Input
               label="Location"
               placeholder="e.g. Kathmandu, Nepal"
@@ -294,5 +332,49 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontSize: 14,
     fontWeight: '500',
+  },
+  dateContainer: {
+    marginBottom: 16,
+  },
+  dateLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  dateButton: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#374151',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 30,
+  },
+  modalDone: {
+    backgroundColor: '#3b82f6',
+    marginHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalDoneText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

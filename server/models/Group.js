@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const groupSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Group name is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: null,
+    },
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
+    },
+    members: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+groupSchema.index({ organizationId: 1 });
+
+module.exports = mongoose.model('Group', groupSchema);

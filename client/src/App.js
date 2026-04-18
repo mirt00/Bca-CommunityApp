@@ -6,28 +6,15 @@ import { AuthStack, CommunityStack } from './navigation/StackNavigator';
 import { getToken } from './utils/tokenHelper';
 import { useAuthStore } from './store/authStore';
 
-/**
- * App — root entry point.
- *
- * On mount:
- *  1. Reads the PASETO token from Expo Secure Store.
- *  2. If a valid token exists and the user is approved, renders CommunityStack.
- *  3. Otherwise renders AuthStack (public screens).
- *
- * TODO: add token expiry validation (decode exp claim without a full decrypt round-trip).
- */
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const { token, isApproved, login } = useAuthStore();
+  const { token, user, isApproved, login } = useAuthStore();
 
   useEffect(() => {
     async function bootstrapAuth() {
       try {
         const storedToken = await getToken();
         if (storedToken) {
-          // TODO: call /api/users/profile to validate token and hydrate user state
-          // For now, trust the stored token and mark as approved
-          // login(storedToken, cachedUser);
         }
       } catch (err) {
         console.warn('[App] Failed to read stored token:', err.message);
@@ -47,9 +34,12 @@ export default function App() {
     );
   }
 
+  const isOrganization = user?.role === 'organization';
+  const canAccess = token && (isApproved || isOrganization);
+
   return (
     <NavigationContainer>
-      {token && isApproved ? <CommunityStack /> : <AuthStack />}
+      {canAccess ? <CommunityStack isOrganization={isOrganization} /> : <AuthStack />}
     </NavigationContainer>
   );
 }

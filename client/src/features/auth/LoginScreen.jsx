@@ -34,36 +34,29 @@ export default function LoginScreen({ navigation }) {
   };
 
   async function handleLogin() {
-    setError('');
-    
-    if (role === 'organization') {
-      if (!selectedOrganization) {
-        setError('Please select your organization');
-        return;
-      }
-      if (!email || !password) {
-        setError('Email and password are required');
-        return;
-      }
-    } else {
-      if (!email || !password) {
-        setError('Email and password are required');
-        return;
-      }
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+    if (role === 'organization' && !selectedOrganization) {
+      setError('Please select your organization');
+      return;
     }
 
+    setError('');
     setLoading(true);
+
     try {
-      if (role === 'organization' && selectedOrganization) {
+      if (role === 'organization') {
         const { data } = await loginOrganization({ email, password });
-        await login(data.organization._id, { ...data.organization, role: 'organization' });
+        await login(data.token, { ...data.organization, role: 'organization' });
       } else {
         const { data } = await loginApi({ email, password });
         await login(data.token, data.user);
       }
     } catch (err) {
-      const message = err.response?.data?.error || 'Login failed. Please try again.';
-      setError(message);
+      console.error('Login error:', err);
+      setError(err.response?.data?.error || err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -110,13 +103,13 @@ export default function LoginScreen({ navigation }) {
 
             {role === 'organization' && (
               <View style={styles.organizationSelector}>
-                <Text style={styles.orgLabel}>Select Organization:</Text>
+                <Text style={styles.orgLabel}>Organization Name</Text>
                 <TouchableOpacity
                   style={styles.orgDropdown}
                   onPress={() => setShowOrgDropdown(!showOrgDropdown)}
                 >
                   <Text style={styles.orgDropdownText}>
-                    {selectedOrganization ? selectedOrganization.organizationName : 'Select organization'}
+                    {selectedOrganization ? selectedOrganization.organizationName : 'Select Your Organization'}
                   </Text>
                   <Text style={styles.dropdownArrow}>{showOrgDropdown ? '▲' : '▼'}</Text>
                 </TouchableOpacity>

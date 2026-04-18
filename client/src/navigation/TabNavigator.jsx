@@ -4,18 +4,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../features/home/HomeScreen';
 import ChatScreen from '../features/chat/ChatScreen';
 import FileGalleryScreen from '../features/files/FileGalleryScreen';
-import JobHubScreen from '../features/jobs/JobHubScreen';
 import VideoCallScreen from '../features/video/VideoCallScreen';
 import ProfileScreen from '../features/profile/ProfileScreen';
 
-// TODO: replace text labels with icon components (e.g. @expo/vector-icons)
-
 const Tab = createBottomTabNavigator();
 
-/**
- * TabNavigator — bottom tab bar for the community (protected) area.
- * Tabs: Home · Chat · Files · Jobs · Video · Profile
- */
 export default function TabNavigator() {
   return (
     <Tab.Navigator
@@ -44,11 +37,6 @@ export default function TabNavigator() {
         name="Files"
         component={FileGalleryScreen}
         options={{ tabBarLabel: 'Files' }}
-      />
-      <Tab.Screen
-        name="Jobs"
-        component={JobHubScreen}
-        options={{ tabBarLabel: 'Jobs' }}
       />
       <Tab.Screen
         name="Video"

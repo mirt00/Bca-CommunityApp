@@ -3,10 +3,13 @@ const router = express.Router();
 const argon2 = require('argon2');
 
 const Organization = require('../models/Organization');
+const User = require('../models/User');
+const UserProfile = require('../models/UserProfile');
+const Group = require('../models/Group');
 const { uploadFile } = require('../config/cloudinary');
+const { encryptToken } = require('../config/paseto');
+const { authenticate, requireAdmin } = require('../middlewares/authMiddleware');
 
-// GET /api/organizations
-// Get all organizations for selection
 router.get('/', async (req, res) => {
   try {
     const organizations = await Organization.find({})
@@ -20,8 +23,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/organizations/register
-// Register a new organization
 router.post('/register', async (req, res) => {
   try {
     const {
@@ -91,8 +92,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/organizations/login
-// Organization login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -111,19 +110,206 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    const token = await encryptToken({
+      id: organization._id,
+      email: organization.email,
+      role: 'organization',
+      organizationName: organization.organizationName,
+    });
+
     return res.status(200).json({
       message: 'Login successful',
+      token,
       organization: {
         _id: organization._id,
         email: organization.email,
         organizationName: organization.organizationName,
         logo: organization.logo,
         location: organization.location,
+        isAdmin: organization.isAdmin,
       },
     });
   } catch (err) {
     console.error('[organizationRoutes.login]', err);
     return res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+router.use(authenticate, requireAdmin);
+
+router.get('/users', async (req, res) => {
+  try {
+    const organizationId = req.user.id;
+    const profiles = await UserProfile.find({ organizationId })
+      .select('userId fullName batch faculty linkedin github');
+
+    const userIds = profiles.map(p => p.userId);
+    const users = await User.find({ _id: { $in: userIds } })
+      .select('_id email role isApproved createdAt');
+
+    const usersWithProfiles = users.map(user => {
+      const profile = profiles.find(p => p.userId.toString() === user._id.toString());
+      return {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        isApproved: user.isApproved,
+        createdAt: user.createdAt,
+        fullName: profile?.fullName,
+        batch: profile?.batch,
+        faculty: profile?.faculty,
+        linkedin: profile?.linkedin,
+        github: profile?.github,
+      };
+    });
+
+    return res.status(200).json({ users: usersWithProfiles });
+  } catch (err) {
+    console.error('[organizationRoutes.getUsers]', err);
+    return res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+router.post('/users/:id/approve', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { isApproved: true } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'User approved successfully', user });
+  } catch (err) {
+    console.error('[organizationRoutes.approveUser]', err);
+    return res.status(500).json({ error: 'Approval failed' });
+  }
+});
+
+router.post('/users/:id/reject', async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await UserProfile.findOneAndDelete({ userId: user._id });
+
+    return res.status(200).json({ message: 'User rejected and deleted' });
+  } catch (err) {
+    console.error('[organizationRoutes.rejectUser]', err);
+    return res.status(500).json({ error: 'Rejection failed' });
+  }
+});
+
+router.get('/groups', async (req, res) => {
+  try {
+    const organizationId = req.user.id;
+    const groups = await Group.find({ organizationId })
+      .populate('members', 'fullName email')
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ groups });
+  } catch (err) {
+    console.error('[organizationRoutes.getGroups]', err);
+    return res.status(500).json({ error: 'Failed to fetch groups' });
+  }
+});
+
+router.post('/groups/create', async (req, res) => {
+  try {
+    const { name, description, image } = req.body;
+    const organizationId = req.user.id;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Group name is required' });
+    }
+
+    let imageUrl = null;
+    if (image && image.startsWith('data:')) {
+      try {
+        const result = await uploadFile(image, {
+          folder: 'it-community-app/groups',
+          resource_type: 'image',
+        });
+        imageUrl = result.secure_url;
+      } catch (uploadErr) {
+        console.error('[organizationRoutes.createGroup] Image upload failed', uploadErr);
+      }
+    }
+
+    const group = await Group.create({
+      name,
+      description,
+      image: imageUrl,
+      organizationId,
+      members: [],
+    });
+
+    return res.status(201).json({ message: 'Group created successfully', group });
+  } catch (err) {
+    console.error('[organizationRoutes.createGroup]', err);
+    return res.status(500).json({ error: 'Group creation failed' });
+  }
+});
+
+router.put('/groups/:id', async (req, res) => {
+  try {
+    const { name, description, image } = req.body;
+    const organizationId = req.user.id;
+
+    const group = await Group.findOne({ _id: req.params.id, organizationId });
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    if (name) group.name = name;
+    if (description) group.description = description;
+
+    if (image && image.startsWith('data:')) {
+      try {
+        const result = await uploadFile(image, {
+          folder: 'it-community-app/groups',
+          resource_type: 'image',
+        });
+        group.image = result.secure_url;
+      } catch (uploadErr) {
+        console.error('[organizationRoutes.updateGroup] Image upload failed', uploadErr);
+      }
+    }
+
+    await group.save();
+
+    return res.status(200).json({ message: 'Group updated successfully', group });
+  } catch (err) {
+    console.error('[organizationRoutes.updateGroup]', err);
+    return res.status(500).json({ error: 'Group update failed' });
+  }
+});
+
+router.delete('/groups/:id', async (req, res) => {
+  try {
+    const organizationId = req.user.id;
+    const group = await Group.findOneAndDelete({ _id: req.params.id, organizationId });
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+
+    return res.status(200).json({ message: 'Group deleted successfully' });
+  } catch (err) {
+    console.error('[organizationRoutes.deleteGroup]', err);
+    return res.status(500).json({ error: 'Group deletion failed' });
+  }
+});
+
+router.get('/files', async (req, res) => {
+  try {
+    return res.status(200).json({ files: [] });
+  } catch (err) {
+    console.error('[organizationRoutes.getFiles]', err);
+    return res.status(500).json({ error: 'Failed to fetch files' });
   }
 });
 
