@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8b5cf6',
   },
   danger: {
-    backgroundColor: '#ef4444',
+    backgroundColor: '#d73a3a',
   },
   ghost: {
     backgroundColor: 'transparent',
