@@ -1,14 +1,16 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-config.watchFolders = ['../shared'];
-
+// Allow Metro to resolve the /shared workspace
+config.watchFolders = [path.resolve(__dirname, '../shared')];
 config.resolver = {
   ...config.resolver,
   extraNodeModules: {
-    shared: require('path').resolve(__dirname, '../shared'),
+    shared: path.resolve(__dirname, '../shared'),
   },
 };
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: './global.css' });
